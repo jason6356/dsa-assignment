@@ -1,5 +1,7 @@
 package adt;
 
+import entity.Food;
+
 import java.util.Arrays;
 
 public class List<T> implements ListI<T>{
@@ -20,7 +22,7 @@ public class List<T> implements ListI<T>{
     @Override
     public boolean add(T newEntry) {
 
-        if(numberOfEntries >= array.length)
+        if(isFull())
             extendArray();
 
         array[numberOfEntries] = newEntry;
@@ -31,6 +33,8 @@ public class List<T> implements ListI<T>{
     @Override
     public boolean add(int newPosition, T newEntry) {
         boolean isSuccessful = true;
+
+
 
         if ((newPosition >= 1) && (newPosition <= numberOfEntries + 1)) {
             makeRoom(newPosition);
@@ -166,6 +170,22 @@ public class List<T> implements ListI<T>{
     private void extendArray(){
         int newSize = array.length * 2;
         array = Arrays.copyOf(array, newSize);
+    }
+
+    public T searchByID(String foodID){
+
+        if(array[0] instanceof Food){
+
+            //System.out.println("is instance of food!");
+
+            for (int i =0 ; i < numberOfEntries; i++) {
+                //System.out.println(array[i]);
+                if(((Food) array[i]).getFoodID().equals(foodID))
+                    return array[i];
+            }
+        }
+
+        return null;
     }
 
 }

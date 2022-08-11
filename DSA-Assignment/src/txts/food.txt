@@ -1,4 +1,5 @@
-Banana Sundae#32.99
-Peanuts Cake#33.99
-Nasi Lemak#1.20
-Chocolate Cake#5.00
+F0001#Banana Sundae#32.99
+F0002#Peanuts Cake#33.99
+F0003#Nasi Lemak#1.20
+F0004#Chocolate Cake#5.00
+F0005#Teh O Limau Ice#1.20

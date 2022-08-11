@@ -1,6 +1,6 @@
 package adt;
 
-public class Queue <T>{
+public class Queue <T> implements QueueI<T>{
     private T[] array; // circular array of array entries and one unused location
     private int frontIndex;
     private int backIndex;
