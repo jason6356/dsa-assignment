@@ -2,13 +2,12 @@ package client;
 import adt.*;
 import entity.*;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Scanner;
 
 public class Driver {
-
-
-    static Scanner scanner = new Scanner(System.in);
-    private static ListI<Food> menuItems;
+    private static Scanner scanner = new Scanner(System.in);
+    private static ListInterface<Item> menuItems;
     private static QueueI<Order> orderQueue;
 
     public static void main(String[] args) throws IOException {
@@ -78,28 +77,28 @@ public class Driver {
 
     public static void displayOrderDetails(){
 
+        displayCurrentQueue();
+
+        if(orderQueue.isEmpty()) {
+            System.out.println("The current order queue is empty!");
+            return;
+        }
+
         System.out.println("Enter the orderID - ");
         String orderID = scanner.next();
         boolean found = false;
 
-        QueueI<Order> newQueue = new Queue<>();
-        while(!orderQueue.isEmpty()){
-            Order order = orderQueue.dequeue();
-
+        Iterator iter = orderQueue.iterator();
+        while(iter.hasNext()){
+            Order order = ((Order) iter.next());
             if(orderID.equals(order.getOrderID())) {
                 found = true;
                 System.out.println(order);
             }
-
-
-            newQueue.enqueue(order);
-
         }
 
         if(!found)
             System.out.println("Order Not Found!");
-
-        orderQueue = newQueue;
     }
 
     public static void clearQueue(){
@@ -118,8 +117,13 @@ public class Driver {
 
     public static void init() throws IOException {
 
-        initData();
+        menuItems = Item.readItemfromFile();
+        orderQueue = Order.readOrderFromFile();
+    }
 
+    public static void saveData() throws IOException {
+        Item.overwriteFile(menuItems);
+        Order.overwriteFile(orderQueue);
     }
 
     public static void printMenu(){
@@ -142,26 +146,10 @@ public class Driver {
             return;
         }
 
-        QueueI<Order> newQueue = new Queue<>();
-        while(!orderQueue.isEmpty()){
-            Order order = orderQueue.dequeue();
+        Iterator iter = orderQueue.iterator();
+        while(iter.hasNext()){
+            Order order = ((Order) iter.next());
             System.out.println(order.getOrderID());
-            newQueue.enqueue(order);
         }
-
-        orderQueue = newQueue;
-
-    }
-
-
-
-    public static void initData() throws IOException {
-        menuItems = Food.readDataFromFile();
-        orderQueue = Order.readDataFromFile(menuItems);
-    }
-
-    public static void  saveData() throws IOException {
-        Food.saveDataToFile(menuItems);
-        Order.saveDataToFile(orderQueue);
     }
 }

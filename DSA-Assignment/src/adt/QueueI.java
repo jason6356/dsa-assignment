@@ -1,6 +1,6 @@
 package adt;
 
-public interface QueueI<T> {
+public interface QueueI<T> extends Iterable<T>{
 
     /**
      * * Task: Adds a new entry to the back of the queue. * * @param newEntry an

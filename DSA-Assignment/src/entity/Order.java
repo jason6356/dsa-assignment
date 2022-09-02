@@ -1,29 +1,40 @@
 package entity;
-import adt.ListI;
-import adt.List;
+import adt.ArrayList;
+import adt.ListInterface;
 import adt.Queue;
 import adt.QueueI;
 
-import java.io.*;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class Order {
 
 
     private String orderID;
-    private ListI<Food> orderedItems;
+    private ListInterface<Item> orderedItems;
+
+    private int orderedItemCount;
+
+    private int orderedAmt = 0;
 
     private static int orderCount = 0;
 
 
     public Order() {
         orderID = generateOrderID();
-        this.orderedItems = new List<Food>();
+        this.orderedItems = new ArrayList<>();
         orderCount++;
     }
 
-    public Order(String orderID,ListI orderedItems){
+    public Order(String orderID,ListInterface<Item> orderedItems){
         this.orderID = orderID;
         this.orderedItems = orderedItems;
         updateOrderCount(orderID);
@@ -68,16 +79,18 @@ public class Order {
         return orderID;
     }
 
-    public ListI<Food> getOrderedItems() {
-        return orderedItems;
-    }
+    public ListInterface<Item> getOrderedItems(){ return orderedItems;}
 
-    public void setOrderedItems(ListI<Food> orderedItems) {
+    public void setOrderedItems(ListInterface<Item> orderedItems) {
         this.orderedItems = orderedItems;
     }
 
-    public void addItemToOrder(Food food){
-        orderedItems.add(food);
+    public void addItemToOrder(Item item){
+
+
+        orderedItems.add(item);
+
+
     }
 
     @Override
@@ -91,11 +104,9 @@ public class Order {
         str.append("\n");
         for(int i = 1; i <= orderedItems.getNumberOfEntries(); i++){
 
-            Food item = orderedItems.getEntry(i);
+            Item item = orderedItems.getEntry(i);
             str.append(String.format("%20s : %3.2f\n",item.getName(),item.getPrice()));
         }
-
-
         str.append(String.format("%20s : %3.2f\n", "Total Amount", getTotalAmount()));
 
         return str.toString();
@@ -116,46 +127,47 @@ public class Order {
         return str.toString();
     }
 
-    public static QueueI<Order> readDataFromFile(ListI<Food> menuItems){
+    private static Item searchItemFromID(ListInterface<Item> itemList, String id){
 
-        QueueI<Order> orderQueue = new Queue<>();
-        try {
-            BufferedReader fileReader = new BufferedReader(new FileReader("DSA-Assignment/src/txts/order.txt"));
-            String line;
-            ListI<Food> orderedItems = new List<>();
-            while((line = fileReader.readLine()) != null){
+        for(int i = 1; i <=itemList.getNumberOfEntries(); i++)
+            if(itemList.getEntry(i).getFoodID().equals(id))
+                return itemList.getEntry(i);
 
-                String[] data = line.split("#");
-                for(String id : data[1].split("~"))
-                    orderedItems.add(((List<Food>) menuItems).searchByID(id));
-
-                orderQueue.enqueue(new Order(data[0],orderedItems));
-            }
-
-            fileReader.close();
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return orderQueue;
+        return null;
     }
 
-    public static void saveDataToFile(QueueI<Order> orderQueue){
+    public static boolean overwriteFile(QueueI<Order> q) throws IOException {
+        String content = "";
+        Iterator queueIter = q.iterator();
 
-        try {
-            BufferedWriter fileWriter = new BufferedWriter(new FileWriter("DSA-Assignment/src/txts/order.txt"));
+        while(queueIter.hasNext())
+            content += ((Order) queueIter.next()).toFileFormat();
 
-            while(!orderQueue.isEmpty()) {
-                Order order = orderQueue.dequeue();
-                fileWriter.write(order.toFileFormat());
-            }
-            fileWriter.close();
+        Files.write(Paths.get("order.txt"), content.getBytes(StandardCharsets.UTF_8));
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return true;
+    }
 
+    public static QueueI readOrderFromFile() throws IOException {
 
+        QueueI<Order> queue = new Queue<>();
+        ListInterface<Item> menuItems = Item.readItemfromFile();
+
+        final String fileName = "order.txt";
+        Stream<String> lines = Files.lines(Paths.get(fileName));
+
+        lines.forEach(e -> {
+            String[] content = e.split("#");
+            String id = content[0];
+            String[] foodIDs = content[1].split("~");
+            ListInterface<Item> orderedItems = new ArrayList<>();
+            Arrays.stream(foodIDs).forEach(foodID -> {
+                orderedItems.add(searchItemFromID(menuItems,foodID));
+            });
+            Order order = new Order(id,orderedItems);
+            System.out.println(id);
+            queue.enqueue(order);
+        });
+        return queue;
     }
 }

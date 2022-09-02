@@ -1,5 +1,7 @@
 package adt;
 
+import java.util.Iterator;
+
 public class Queue <T> implements QueueI<T>{
     private T[] array; // circular array of array entries and one unused location
     private int frontIndex;
@@ -63,5 +65,36 @@ public class Queue <T> implements QueueI<T>{
 
     private boolean isArrayFull() {
         return frontIndex == ((backIndex + 2) % array.length);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new QueueIterator<>(array);
+    }
+
+    public class QueueIterator<T> implements Iterator<T>{
+
+        private T[] array;
+        private int current;
+
+        public QueueIterator(T[] array) {
+            this.array = array;
+            current = frontIndex;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return !isEmpty() && current != backIndex + 1;
+        }
+
+        @Override
+        public T next() {
+            if(isEmpty())
+                return null;
+
+            T result = array[current];
+            current = (current + 1) % array.length;
+            return result;
+        }
     }
 }
